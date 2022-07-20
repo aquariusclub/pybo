@@ -24,3 +24,5 @@ urlpatterns = [
     path('common/', include('common.urls')),
     path('', base_views.index, name='index'), # / 페이지에 해당하는 urlpatterns
 ]
+
+handler404 = 'common.views.page_not_found' # 404 발생 시 정의한 뷰 함수 호출
