@@ -9,7 +9,7 @@ from ..models import Question
 @login_required(login_url='common:login')
 def question_create(request):
     """
-    pybo 질문 등록
+    community 질문 등록
     """
     if request.method == 'POST':
         form = QuestionForm(request.POST)
@@ -18,21 +18,21 @@ def question_create(request):
             question.author = request.user # 추가한 속성 author 적용
             question.create_date = timezone.now()
             question.save()
-            return redirect('pybo:index')
+            return redirect('community:index')
     else:
         form = QuestionForm()
     context = {'form': form}
-    return render(request, 'pybo/question_form.html', context)
+    return render(request, 'community/question_form.html', context)
 
 @login_required(login_url='common:login')
 def question_modify(request, question_id):
     """
-    pybo 질문 수정
+    community 질문 수정
     """
     question = get_object_or_404(Question, pk=question_id)
     if request.user != question.author:
         messages.error(request, '수정권한이 없습니다')
-        return redirect('pybo:detail', question_id=question.id)
+        return redirect('community:detail', question_id=question.id)
 
     if request.method == 'POST':
         form = QuestionForm(request.POST, instance=question)
@@ -41,22 +41,22 @@ def question_modify(request, question_id):
             question.author = request.user
             question.modify_date = timezone.now() #수정일시 저장
             question.save()
-            return redirect('pybo:detail', question_id=question.id)
+            return redirect('community:detail', question_id=question.id)
     else:
         form = QuestionForm(instance=question)
     context = {'form': form}
-    return render(request, 'pybo/question_form.html', context)
+    return render(request, 'community/question_form.html', context)
 
 @login_required(login_url='common:login')
 def question_delete(request, question_id):
     """
-    pybo 질문 삭제
+    community 질문 삭제
     """
     question = get_object_or_404(Question, pk=question_id)
     if request.user != question.author:
         messages.error(request, '삭제권한이 없습니다')
-        return redirect('pybo:detail', question_id=question.id)
+        return redirect('community:detail', question_id=question.id)
     question.delete()
-    return redirect('pybo:index')
+    return redirect('community:index')
 
 

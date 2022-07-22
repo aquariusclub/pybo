@@ -5,12 +5,12 @@ from ..models import Question
 from django.db.models import Q, Count
 
 import logging
-logger = logging.getLogger('pybo')
+logger = logging.getLogger('community')
 
 def index(request):
     logger.info("INFO 레벨로 출력")
     """
-    pybo 목록 출력
+    community 목록 출력
     """
     # 입력인자
     page = request.GET.get('page', '1')  # 페이지
@@ -24,6 +24,8 @@ def index(request):
     elif so == 'popular':
         question_list = Question.objects.annotate(
             num_answer=Count('answer')).order_by('-num_answer', '-create_date')
+    elif so == 'old':
+        question_list = Question.objects.order_by('create_date')
     else: # recent
         question_list = Question.objects.order_by('-create_date')
 
@@ -37,17 +39,17 @@ def index(request):
         ).distinct()
 
     # 페이징 처리
-    paginator = Paginator(question_list, 10)  # 페이지당 10개씩 보여주기
+    paginator = Paginator(question_list, 15)  # 페이지당 15개씩 보여주기
     page_obj = paginator.get_page(page)
 
     context = {'question_list': page_obj, 'page': page, 'kw': kw, 'so': so} # page와 kw가 추가됨
-    return render(request, 'pybo/question_list.html', context)
+    return render(request, 'community/question_list.html', context)
 
 
 def detail(request, question_id):
     """
-    pybo 내용 출력
+    community 내용 출력
     """
     question = get_object_or_404(Question, pk=question_id)
     context = {'question': question}
-    return render(request, 'pybo/question_detail.html', context)
+    return render(request, 'community/question_detail.html', context)

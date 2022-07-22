@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load pybo_filter %}
+{% load community_filter %}
 {% block content %}
 
 <div class="container my-3">
@@ -15,23 +15,26 @@
                 <option value="popular" {% if so == 'popular' %}selected{% endif %}>
                     인기순
                 </option>
+                <option value="old" {% if so == 'old' %}selected{% endif %}>
+                    오래된순
+                </option>
             </select>
+
         </div>
-        <div class="col-4 input-group">
-            <input type="text" class="form-control kw" value="{{ kw|default_if_none:''}}">
-            <div class="input-group-append">
-                <button class="btn btn-outline-secondary" type="button" id="btn_search">찾기</button>
-            </div>
+        <div class="col-auto">
+            <a href="{% url 'community:question_create' %}" class="btn btn-secondary">글쓰기</a>
         </div>
+
     </div>
-    <table class="table">
+    <table class="table table-sm">
         <thead>
-        <tr class="text-center thead-dark">
-            <th>번호</th>
-            <th>추천</th>
-            <th style="width:50%">제목</th>
-            <th>글쓴이</th>
-            <th>작성일시</th>
+        <tr class="text-center thead-light">
+            <th>no.</th>
+            <th>카테고리</th>
+            <th>주제</th>
+            <th style="width:60%">제목</th>
+            <th>추천수</th>
+            <th>날짜</th>
         </tr>
         </thead>
         <tbody>
@@ -40,15 +43,30 @@
         <tr class="text-center">
             <td>{{ question_list.paginator.count|sub:question_list.start_index|sub:forloop.counter0|add:1 }}</td>
             <td>
-                {% if question.voter.all.count > 0 %}
-                <span class="badge badge-warning px-2 py-1">
-                    {{ question.voter.all.count }}
-                </span>
+                {%if question.category == '연극/뮤지컬' %}
+                    <span class="badge badge-primary py-1" style="width:80px">
+                {% elif question.category == '클래식' %}
+                    <span class="badge badge-warning py-1" style="width:80px">
+                {% elif question.category == '콘서트' %}
+                    <span class="badge badge-danger py-1" style="width:80px">
+                {% elif question.category == '전시' %}
+                    <span class="badge badge-success py-1" style="width:80px">
+                {% else %}
+                    <span class="badge badge-dark py-1" style="width:80px">
                 {% endif %}
+                {{ question.category }}
+                </span>
             </td>
+            <td><span class="badge badge-dark py-1" style="width:50px">{{ question.subject }}</span></td>
             <td class="text-left">
-                <a href="{% url 'pybo:detail' question.id %}">
-                    {{ question.subject }}
+                {%if question.keyword != NULL and question.keyword != '기타' %}
+                <a href="{% url 'community:detail' question.id %}" style="color:black; font-size:0.9em" >
+                    <!--추후 링크 클릭 시 목록에서 해당 키워드만 보이게 수정 예정 -->
+                        [{{question.keyword}}]
+                </a>
+                {% endif %}
+                <a href="{% url 'community:detail' question.id %}" style="color:black; font-size:0.9em">
+                    {{ question.title }}
                 </a>
                 {% if question.answer_set.count > 0 %}
                 <span class="text-danger small ml-2">
@@ -56,8 +74,16 @@
                 </span>
                 {% endif %}
             </td>
-            <td>{{ question.author.username }}</td>
-            <td>{{ question.create_date }}</td>
+            <td>
+                {% if question.voter.all.count > 0 %}
+                <span class="badge badge-pill badge-light px-2 py-1">
+                    {{ question.voter.all.count }}
+                </span>
+                {% endif %}
+            </td>
+            <td style="font-size:0.9em">
+                {{ question.create_date|date:'H:i | Y-m-d' }}
+            </td>
         </tr>
         {% endfor %}
         {% else %}
@@ -65,15 +91,16 @@
             <td colspan="3">질문이 없습니다.</td>
         </tr>
         {% endif %}
+        <tr ><td colspan="6"></td></tr>
         </tbody>
     </table>
     <!--페이징 처리 시작 -->
-    <ul class="pagination justify-content-center">
+    <ul class="pagination pagination-sm justify-content-center">
         <!--이전 페이지-->
         {% if question_list.has_previous %}
         <li class="page-item">
             <a class="page-link" data-page="{{ question_list.previous_page_number }}"
-               href="#">이전</a>
+               href="#">&laquo;</a>
         </li>
         {% else %}
         <li class="page-item disabled">
@@ -104,7 +131,7 @@
         {% if question_list.has_next %}
         <li class="page-item">
             <a class="page-link" data-page="{{ question_list.next_page_number }}"
-               href="#">다음</a>
+               href="#">&raquo;</a>
         </li>
         {% else %}
         <li class="page-item disabled">
@@ -115,10 +142,14 @@
         {% endif %}
     </ul>
     <!--페이징 처리 끝 -->
-    <a href="{% url 'pybo:question_create' %}" class="btn btn-primary">
-        질문 등록하기
-    </a>
-</div>
+    <div class="row justify-content-center">
+        <div class="col-4 input-group">
+            <input type="text" class="form-control kw" value="{{ kw|default_if_none:''}}">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" id="btn_search">검색</button>
+            </div>
+        </div>
+    </div>
 <form id="searchForm" method="get" action="{% url 'index' %}">
     <input type="hidden" id="kw" name="kw" value="{{ kw|default_if_none:'' }}">
     <input type="hidden" id="page" name="page" value="{{ page }}">
